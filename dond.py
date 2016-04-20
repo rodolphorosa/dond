@@ -63,8 +63,6 @@ def main():
 	contestantsocket, contestantaddress = contestants[0]
 	bankersocket, bankeraddress 		= bankers[0]
 
-	checklist = []	# Lista de maletas escolhidas/abertas pelo competidor
-
 	# Nesta etapa, o competidor escolhe a maleta inicial, que permanecerá fechada até o fim do jogo
 	while True:
 		claimed = makeRequest("claim", contestantsocket, contestantaddress)
@@ -115,7 +113,10 @@ def main():
 		if answer == "S":
 			banker.loseAmount(bankeroffer)
 			contestant.acceptOffer(bankeroffer)
-			sendMessageToAll("Acabou o jogo!", [bankersocket, contestantsocket])
+			message = "A maleta tinha: " + contestant.getBriefcase().getAmount()
+			sendMessageToAll(message, [bankersocket, contestantsocket])
+			message = "Competidor ganhou: " + bankeroffer
+			sendMessageToAll(message, [bankersocket, contestantsocket])
 			return
 		elif answer == "N":
 			if countOpenCases(briefcases) == 24:
@@ -132,6 +133,7 @@ if __name__ == "__main__":
 	LIMIT = 1
 	contestants = []
 	bankers = []
+	spectators = []
 
 	HOST = ""
 	PORT = 5000
