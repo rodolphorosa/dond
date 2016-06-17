@@ -64,8 +64,12 @@ def main():
 	bankersocket, bankeraddress 		= bankers[0]
 
 	# Nesta etapa, o competidor escolhe a maleta inicial, que permanecerá fechada até o fim do jogo
+	sendMessageToAll("Contestante esta escolhendo sua maleta...", 
+			[conn for (conn, _) in bankers + spectators])
+
 	while True:
 		claimed = makeRequest("claim", contestantsocket, contestantaddress)
+
 		if int(claimed) > 26 or int(claimed) < 1:
 			sendMessageToClient("Esta maleta nao existe\n", contestantsocket, contestantaddress)
 			continue
@@ -78,8 +82,9 @@ def main():
 
 		contestant.claimBriefcase(briefcase)
 		briefcase.claimCase()
-		message = "Maleta escolhida: " + claimed
-		sendMessageToAll(message, [bankersocket, contestantsocket])
+		message = "Maleta escolhida: " + claimed + "\n"
+		sendMessageToAll(message, 
+			[conn for (conn, client) in contestants + bankers + spectators])
 		break
 
 	# Executa as rodadas até que o apostador aceite a proposta do banqueiro ou restem apenas uma maleta fechada
@@ -88,9 +93,13 @@ def main():
 	while True:
 		cases_to_open 	= calculateRoundChoices(currentround)
 		open_cases 		= 0
+
 		while open_cases < cases_to_open:
+			sendMessageToAll("Contestante esta escolhendo uma maleta para ser aberta...", 
+				[conn for (conn, _) in bankers + spectators])
 			selected = makeRequest("select", contestantsocket, contestantaddress)
-			if int(selected) > 26:
+
+			if int(selected) > 26 or int(selected) < 1:
 				sendMessageToClient("Esta maleta nao existe\n", contestantsocket, contestantaddress)
 				continue
 			
@@ -101,30 +110,46 @@ def main():
 				continue
 
 			briefcase.openCase()
-			message = "Maleta escolhida: " + str(briefcase.getNumber()) + "\nValor: " + str(briefcase.getAmount())
-			sendMessageToAll(message, [bankersocket, contestantsocket])
+			message = "Maleta escolhida: " + str(briefcase.getNumber()) + "\nValor: " + str(briefcase.getAmount()) + "\n"
+			sendMessageToAll(message, 
+				[conn for (conn, _) in contestants + bankers + spectators])
 			open_cases = open_cases + 1
 		
+		sendMessageToAll("Banqueiro esta fazendo uma proposta...\n", 
+				[conn for (conn, _) in contestants + spectators])
 		bankeroffer = makeRequest("makeoffer", bankersocket, bankeraddress)
-		message = "Oferta do banqueiro: " + bankeroffer
-		sendMessageToClient(message, contestantsocket, contestantaddress)
+
+		message = "Oferta do banqueiro: " + bankeroffer + "\n"
+		sendMessageToAll(message, 
+				[conn for (conn, _) in contestants + spectators])
+
+		sendMessageToAll("Contestante esta decidindo se topa ou nao topa a proposta...\n", 
+				[conn for (conn, _) in bankers + spectators])
 		answer = makeRequest("agreement", contestantsocket, contestantaddress)
 
 		if answer == "S":
 			banker.loseAmount(bankeroffer)
 			contestant.acceptOffer(bankeroffer)
-			message = "A maleta tinha: " + contestant.getBriefcase().getAmount()
-			sendMessageToAll(message, [bankersocket, contestantsocket])
+
+			message = "A maleta tinha: " + contestant.getBriefcase().getAmount() + "\n"
+			sendMessageToAll(message, 
+				[conn for (conn, _) in contestants + bankers + spectators])
+			
 			message = "Competidor ganhou: " + bankeroffer
-			sendMessageToAll(message, [bankersocket, contestantsocket])
+			sendMessageToAll(message, 
+				[conn for (conn, _) in contestants + bankers + spectators])
 			return
 		elif answer == "N":
 			if countOpenCases(briefcases) == 24:
 				last = [briefcases[case] for case in briefcases.keys() if not briefcases[case].isOpen() and not briefcases[case].isClaimed()]
-				message = "Ultima maleta: " + last[0].getNumber() + "\nValor: " + last[0].getAmount()
-				sendMessageToAll(message, [bankersocket, contestantsocket])
+				
+				message = "Ultima maleta: " + last[0].getNumber() + "\nValor: " + last[0].getAmount() + "\n"
+				sendMessageToAll(message, 
+					[conn for (conn, _) in contestants + bankers + spectators])
+				
 				message = "Competidor ganhou: " + contestant.getBriefcase().getAmount()
-				sendMessageToAll(message, [bankersocket, contestantsocket])
+				sendMessageToAll(message, 
+					[conn for (conn, _) in contestants + bankers + spectators])
 				return
 			currentround = currentround + 1
 			continue
