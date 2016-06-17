@@ -54,6 +54,8 @@ try:
 			selectCase(tcp)
 		elif servermessage.decode() == "agreement":
 			handleOffer(tcp)
+		elif servermessage.decode() == "end":
+			sys.exit(0)
 		else:
 			print(servermessage.decode())
 except (SystemExit, KeyboardInterrupt):

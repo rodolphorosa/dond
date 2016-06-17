@@ -42,6 +42,8 @@ try:
 
 		if servermessage.decode() == "makeoffer":
 			makeOffer(tcp)
+		elif servermessage.decode() == "end":
+			sys.exit(0)
 		else:
 			print(servermessage.decode())
 except (SystemExit, KeyboardInterrupt):

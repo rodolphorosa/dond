@@ -1,4 +1,4 @@
-import socket
+import socket, time
 import _thread
 from random import shuffle
 from banker import Banker 
@@ -69,6 +69,9 @@ def main():
 
 	while True:
 		claimed = makeRequest("claim", contestantsocket, contestantaddress)
+		
+		if not claimed.strip():
+			continue
 
 		if int(claimed) > 26 or int(claimed) < 1:
 			sendMessageToClient("Esta maleta nao existe\n", contestantsocket, contestantaddress)
@@ -98,6 +101,9 @@ def main():
 			sendMessageToAll("Contestante esta escolhendo uma maleta para ser aberta...", 
 				[conn for (conn, _) in bankers + spectators])
 			selected = makeRequest("select", contestantsocket, contestantaddress)
+
+			if not selected.strip():
+				continue
 
 			if int(selected) > 26 or int(selected) < 1:
 				sendMessageToClient("Esta maleta nao existe\n", contestantsocket, contestantaddress)
@@ -138,7 +144,7 @@ def main():
 			sendMessageToAll(message, 
 				[conn for (conn, _) in contestants + bankers + spectators])
 			
-			message = "Competidor ganhou: " + bankeroffer
+			message = "Competidor ganhou: " + bankeroffer + "\n"
 			sendMessageToAll(message, 
 				[conn for (conn, _) in contestants + bankers + spectators])
 			return
@@ -221,6 +227,19 @@ if __name__ == "__main__":
 					[conn for (conn, client) in contestants + bankers + spectators])
 
 				main()
+
+				time.sleep(1.0)
+
+				for (conn, client) in contestants + bankers + spectators:
+					conn.sendall(b"end")
+				
+				print("Encerrando jogo...")
+
+				bankers.clear()
+				contestants.clear()
+				spectators.clear()
+
+				print("Esperando jogadores...")
 	except (SystemExit, KeyboardInterrupt):
 		print("Desligando servidor...")
 	finally:
