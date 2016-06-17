@@ -21,16 +21,24 @@ tcp.settimeout(1.0)
 tcp.connect(destiny)
 tcp.send(b"contestant")
 
+def getInput(prompt):
+	message = ""
+
+	while not message:
+		message = input(prompt)
+
+	return message
+
 def claimCase(tcp):
-	message = input("Escolha uma maleta (1/26): ")
+	message = getInput("Escolha uma maleta (1/26): ")
 	tcp.sendall(message.encode())
 
 def selectCase(tcp):
-	message = input("Escolha uma maleta para ser aberta (1/26): ")
+	message = getInput("Escolha uma maleta para ser aberta (1/26): ")
 	tcp.sendall(message.encode())
 
 def handleOffer(tcp):
-	message = input("Topa ou nao topa? [S/N]: ")
+	message = getInput("Topa ou nao topa? [S/N]: ")
 	tcp.sendall(message.encode())
 
 try:

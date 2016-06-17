@@ -21,8 +21,16 @@ tcp.settimeout(1.0)
 tcp.connect(destiny)
 tcp.send(b"banker")
 
+def getInput(prompt):
+	message = ""
+
+	while not message:
+		message = input(prompt)
+
+	return message
+
 def makeOffer(tcp):
-	message = input("Entre com uma oferta: ")
+	message = getInput("Entre com uma oferta: ")
 	tcp.sendall(message.encode())
 
 try:
