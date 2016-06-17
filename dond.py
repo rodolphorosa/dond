@@ -66,7 +66,7 @@ def main():
 	# Nesta etapa, o competidor escolhe a maleta inicial, que permanecerá fechada até o fim do jogo
 	while True:
 		claimed = makeRequest("claim", contestantsocket, contestantaddress)
-		if int(claimed) > 26:
+		if int(claimed) > 26 or int(claimed) < 1:
 			sendMessageToClient("Esta maleta nao existe\n", contestantsocket, contestantaddress)
 			continue
 		
@@ -171,7 +171,7 @@ if __name__ == "__main__":
 					connection.sendto("Conectado como expectador.".encode(), client)
 					sendMessageToAll("Jogador conectou como expectador.", 
 						[conn for (conn, client) in contestants + bankers + spectators])
-					
+
 					spectators.append((connection, client))
 			
 			if message == b'banker' and len(bankers) < LIMIT:
