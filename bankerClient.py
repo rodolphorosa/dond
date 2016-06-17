@@ -17,6 +17,7 @@ if len(sys.argv) > 1:
 destiny = (HOST,PORT)
 
 tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tcp.settimeout(1.0)
 tcp.connect(destiny)
 tcp.send(b"banker")
 
@@ -24,10 +25,18 @@ def makeOffer(tcp):
 	message = input("Entre com uma oferta: ")
 	tcp.sendall(message.encode())
 
-while True:
-	servermessage = tcp.recv(4096)
-	if servermessage.decode() == "makeoffer":
-		makeOffer(tcp)
-	else:
-		print(servermessage.decode())
-tcp.close()
+try:
+	while True:
+		try:
+			servermessage = tcp.recv(4096)
+		except socket.timeout:
+			continue
+
+		if servermessage.decode() == "makeoffer":
+			makeOffer(tcp)
+		else:
+			print(servermessage.decode())
+except (SystemExit, KeyboardInterrupt):
+	print("Saindo do jogo...")
+finally:
+	tcp.close()

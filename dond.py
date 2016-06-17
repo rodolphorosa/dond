@@ -139,37 +139,45 @@ if __name__ == "__main__":
 	PORT = 5000
 	origin = (HOST, PORT)
 	tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	tcp.settimeout(1.0)
 	tcp.bind(origin)
 	tcp.listen(1)
 
 	print("Servidor iniciado.")
 	print("Esperando jogadores...")
 
-	while True:
-		connection, client = tcp.accept()
-		message = connection.recv(1024)
+	try:
+		while True:
+			try:
+				connection, client = tcp.accept()
+				message = connection.recv(1024)
+			except socket.timeout:
+				continue
 
-		if message == b'contestant':
-			if len(contestants) < LIMIT:
+			if message == b'contestant':
+				if len(contestants) < LIMIT:
+					_thread.start_new_thread(playerConnected, (connection, client))
+					contestants.append((connection, client))
+					connection.sendto("Conectado como contestante.".encode(), client)
+					print("Jogador conectou como contestante.")
+				else:
+					_thread.start_new_thread(playerConnected, (connection, client))
+					spectators.append((connection, client))
+					connection.sendto("Conectado como expectador.".encode(), client)
+					print("Jogador conectou como expectador.")
+			
+			if message == b'banker' and len(bankers) < LIMIT:
 				_thread.start_new_thread(playerConnected, (connection, client))
-				contestants.append((connection, client))
-				connection.sendto("Conectado como contestante.".encode(), client)
-				print("Jogador conectou como contestante.")
-			else:
-				_thread.start_new_thread(playerConnected, (connection, client))
-				spectators.append((connection, client))
-				connection.sendto("Conectado como expectador.".encode(), client)
-				print("Jogador conectou como expectador.")
-		
-		if message == b'banker' and len(bankers) < LIMIT:
-			_thread.start_new_thread(playerConnected, (connection, client))
-			bankers.append((connection, client))
-			connection.sendto("Conectado como banqueiro.".encode(), client)
-			print("Jogador conectou como banqueiro.")
-		
-		if contestants and bankers:
-			print("Banqueiro e contestante conectados. Iniciando o jogo.")
-			for (conn,client) in contestants + bankers + spectators:
-				conn.sendall("Vamos começar o jogo!".encode())
-			main()
-	tcp.close()
+				bankers.append((connection, client))
+				connection.sendto("Conectado como banqueiro.".encode(), client)
+				print("Jogador conectou como banqueiro.")
+			
+			if contestants and bankers:
+				print("Banqueiro e contestante conectados. Iniciando o jogo.")
+				for (conn,client) in contestants + bankers + spectators:
+					conn.sendall("Vamos começar o jogo!".encode())
+				main()
+	except (SystemExit, KeyboardInterrupt):
+		print("Desligando servidor...")
+	finally:
+		tcp.close()

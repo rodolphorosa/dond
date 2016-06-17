@@ -1,4 +1,4 @@
-import socket, sys
+import socket, sys, signal
 from contestant import Contestant
 
 HOST = "127.0.0.1"
@@ -17,6 +17,7 @@ if len(sys.argv) > 1:
 destiny = (HOST,PORT)
 
 tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tcp.settimeout(1.0)
 tcp.connect(destiny)
 tcp.send(b"contestant")
 
@@ -32,16 +33,22 @@ def handleOffer(tcp):
 	message = input("Topa ou nao topa? [S/N]: ")
 	tcp.sendall(message.encode())
 
-while True:
-	servermessage = tcp.recv(4096)
+try:
+	while True:
+		try:
+			servermessage = tcp.recv(4096)
+		except socket.timeout:
+			continue
 
-	if servermessage.decode() == "claim":
-		claimCase(tcp)
-	elif servermessage.decode() == "select":
-		selectCase(tcp)
-	elif servermessage.decode() == "agreement":
-		handleOffer(tcp)
-	else:
-		print(servermessage.decode())
-
-tcp.close()
+		if servermessage.decode() == "claim":
+			claimCase(tcp)
+		elif servermessage.decode() == "select":
+			selectCase(tcp)
+		elif servermessage.decode() == "agreement":
+			handleOffer(tcp)
+		else:
+			print(servermessage.decode())
+except (SystemExit, KeyboardInterrupt):
+	print("Saindo do jogo...")
+finally:
+	tcp.close()
