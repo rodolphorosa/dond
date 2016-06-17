@@ -149,10 +149,15 @@ if __name__ == "__main__":
 		connection, client = tcp.accept()
 		message = connection.recv(1024)
 
-		if message == b'contestant' and len(contestants) < LIMIT:
-			_thread.start_new_thread(playerConnected, (connection, client))
-			contestants.append((connection, client))
-			print("Jogador conectou como contestante.")
+		if message == b'contestant':
+			if len(contestants) < LIMIT:
+				_thread.start_new_thread(playerConnected, (connection, client))
+				contestants.append((connection, client))
+				print("Jogador conectou como contestante.")
+			else:
+				_thread.start_new_thread(playerConnected, (connection, client))
+				spectators.append((connection, client))
+				print("Jogador conectou como expectador.")
 		
 		if message == b'banker' and len(bankers) < LIMIT:
 			_thread.start_new_thread(playerConnected, (connection, client))
@@ -161,7 +166,7 @@ if __name__ == "__main__":
 		
 		if contestants and bankers:
 			print("Banqueiro e contestante conectados. Iniciando o jogo.")
-			for (conn,client) in contestants + bankers:
+			for (conn,client) in contestants + bankers + spectators:
 				conn.sendall("Vamos começar o jogo!".encode())
 			main()
 	tcp.close()
