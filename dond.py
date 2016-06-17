@@ -45,7 +45,7 @@ def makeRequest(message, socket, address):
 
 # Invocada quando um jogador conecta ao servidor
 def playerConnected(connection, client):
-	print("Connected by player: ", client)
+	print("Conectado pelo jogador: ", client)
 
 def countOpenCases(briefcases):
 	sum = 0
@@ -153,15 +153,18 @@ if __name__ == "__main__":
 			if len(contestants) < LIMIT:
 				_thread.start_new_thread(playerConnected, (connection, client))
 				contestants.append((connection, client))
+				connection.sendto("Conectado como contestante.".encode(), client)
 				print("Jogador conectou como contestante.")
 			else:
 				_thread.start_new_thread(playerConnected, (connection, client))
 				spectators.append((connection, client))
+				connection.sendto("Conectado como expectador.".encode(), client)
 				print("Jogador conectou como expectador.")
 		
 		if message == b'banker' and len(bankers) < LIMIT:
 			_thread.start_new_thread(playerConnected, (connection, client))
 			bankers.append((connection, client))
+			connection.sendto("Conectado como banqueiro.".encode(), client)
 			print("Jogador conectou como banqueiro.")
 		
 		if contestants and bankers:
