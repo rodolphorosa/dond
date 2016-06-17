@@ -19,7 +19,7 @@ def selectCase(tcp):
 	tcp.sendall(message.encode())
 
 def handleOffer(tcp):
-	message = input("Topa ou não topa? [S/N]: ")
+	message = input("Topa ou nao topa? [S/N]: ")
 	tcp.sendall(message.encode())
 
 while True:
