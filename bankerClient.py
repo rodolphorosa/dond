@@ -1,8 +1,18 @@
-import socket
+import socket, sys
 from banker import Banker
 
 HOST = "127.0.0.1"
 PORT = 5000
+
+if len(sys.argv) > 1:
+	HOST = sys.argv[1]
+
+	if len(sys.argv) > 2:
+		PORT = int(sys.argv[2])
+
+		if len(sys.argv) > 3:
+			print("Modo de usar:", sys.argv[0], "<ip-do-servidor> <porta-do-servidor>")
+			sys.exit()
 
 destiny = (HOST,PORT)
 

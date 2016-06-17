@@ -1,8 +1,18 @@
-import socket
+import socket, sys
 from contestant import Contestant
 
 HOST = "127.0.0.1"
 PORT = 5000
+
+if len(sys.argv) > 1:
+	HOST = sys.argv[1]
+
+	if len(sys.argv) > 2:
+		PORT = int(sys.argv[2])
+
+		if len(sys.argv) > 3:
+			print("Modo de usar:", sys.argv[0], "<ip-do-servidor> <porta-do-servidor>")
+			sys.exit()
 
 destiny = (HOST,PORT)
 
@@ -24,6 +34,7 @@ def handleOffer(tcp):
 
 while True:
 	servermessage = tcp.recv(4096)
+
 	if servermessage.decode() == "claim":
 		claimCase(tcp)
 	elif servermessage.decode() == "select":
@@ -32,4 +43,5 @@ while True:
 		handleOffer(tcp)
 	else:
 		print(servermessage.decode())
+
 tcp.close()
