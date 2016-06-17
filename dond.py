@@ -127,7 +127,7 @@ def main():
 				[conn for (conn, _) in bankers + spectators])
 		answer = makeRequest("agreement", contestantsocket, contestantaddress)
 
-		if answer == "S":
+		if answer.lower() in ["s", "sim"]:
 			banker.loseAmount(bankeroffer)
 			contestant.acceptOffer(bankeroffer)
 
@@ -139,7 +139,7 @@ def main():
 			sendMessageToAll(message, 
 				[conn for (conn, _) in contestants + bankers + spectators])
 			return
-		elif answer == "N":
+		elif answer.lower() in ["n", "nao", "não"]:
 			if countOpenCases(briefcases) == 24:
 				last = [briefcases[case] for case in briefcases.keys() if not briefcases[case].isOpen() and not briefcases[case].isClaimed()]
 				
