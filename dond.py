@@ -157,25 +157,38 @@ if __name__ == "__main__":
 			if message == b'contestant':
 				if len(contestants) < LIMIT:
 					_thread.start_new_thread(playerConnected, (connection, client))
-					contestants.append((connection, client))
-					connection.sendto("Conectado como contestante.".encode(), client)
+
 					print("Jogador conectou como contestante.")
+					connection.sendto("Conectado como contestante.".encode(), client)
+					sendMessageToAll("Jogador conectou como contestante.", 
+						[conn for (conn, client) in contestants + bankers + spectators])
+
+					contestants.append((connection, client))
 				else:
 					_thread.start_new_thread(playerConnected, (connection, client))
-					spectators.append((connection, client))
-					connection.sendto("Conectado como expectador.".encode(), client)
+					
 					print("Jogador conectou como expectador.")
+					connection.sendto("Conectado como expectador.".encode(), client)
+					sendMessageToAll("Jogador conectou como expectador.", 
+						[conn for (conn, client) in contestants + bankers + spectators])
+					
+					spectators.append((connection, client))
 			
 			if message == b'banker' and len(bankers) < LIMIT:
 				_thread.start_new_thread(playerConnected, (connection, client))
-				bankers.append((connection, client))
-				connection.sendto("Conectado como banqueiro.".encode(), client)
+
 				print("Jogador conectou como banqueiro.")
+				connection.sendto("Conectado como banqueiro.".encode(), client)
+				sendMessageToAll("Jogador conectou como banqueiro.", 
+					[conn for (conn, client) in contestants + bankers + spectators])
+
+				bankers.append((connection, client))
 			
 			if contestants and bankers:
 				print("Banqueiro e contestante conectados. Iniciando o jogo.")
-				for (conn,client) in contestants + bankers + spectators:
-					conn.sendall("Vamos começar o jogo!".encode())
+				sendMessageToAll("Vamos comecar o jogo!", 
+					[conn for (conn, client) in contestants + bankers + spectators])
+
 				main()
 	except (SystemExit, KeyboardInterrupt):
 		print("Desligando servidor...")
