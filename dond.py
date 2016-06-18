@@ -54,6 +54,12 @@ def countOpenCases(briefcases):
 			sum = sum + 1
 	return sum
 
+def connectPlayerAs(role):
+	print("Jogador conectou como " + role + ".")
+	connection.sendto(("Conectado como " + role + ".").encode(), client)
+	sendMessageToAll("Jogador conectou como " + role + ".", 
+		[conn for (conn, client) in contestants + bankers + spectators])
+
 # Função principal
 def main():
 	banker 		= Banker()
@@ -192,43 +198,23 @@ if __name__ == "__main__":
 				continue
 
 			if message == b'contestant':
+				_thread.start_new_thread(playerConnected, (connection, client))
+
 				if len(contestants) < LIMIT:
-					_thread.start_new_thread(playerConnected, (connection, client))
-
-					print("Jogador conectou como contestante.")
-					connection.sendto("Conectado como contestante.".encode(), client)
-					sendMessageToAll("Jogador conectou como contestante.", 
-						[conn for (conn, client) in contestants + bankers + spectators])
-
+					connectPlayerAs('contestante')
 					contestants.append((connection, client))
 				else:
-					_thread.start_new_thread(playerConnected, (connection, client))
-					
-					print("Jogador conectou como expectador.")
-					connection.sendto("Conectado como expectador.".encode(), client)
-					sendMessageToAll("Jogador conectou como expectador.", 
-						[conn for (conn, client) in contestants + bankers + spectators])
-
+					connectPlayerAs('expectador')
 					spectators.append((connection, client))
 			
 			if message == b'banker':
+				_thread.start_new_thread(playerConnected, (connection, client))
+
 				if len(bankers) < LIMIT:
-					_thread.start_new_thread(playerConnected, (connection, client))
-
-					print("Jogador conectou como banqueiro.")
-					connection.sendto("Conectado como banqueiro.".encode(), client)
-					sendMessageToAll("Jogador conectou como banqueiro.", 
-						[conn for (conn, client) in contestants + bankers + spectators])
-
+					connectPlayerAs('banqueiro')
 					bankers.append((connection, client))
 				else:
-					_thread.start_new_thread(playerConnected, (connection, client))
-					
-					print("Jogador conectou como expectador.")
-					connection.sendto("Conectado como expectador.".encode(), client)
-					sendMessageToAll("Jogador conectou como expectador.", 
-						[conn for (conn, client) in contestants + bankers + spectators])
-
+					connectPlayerAs('expectador')
 					spectators.append((connection, client))
 
 			if contestants and bankers:
