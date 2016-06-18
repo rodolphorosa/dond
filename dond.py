@@ -211,16 +211,26 @@ if __name__ == "__main__":
 
 					spectators.append((connection, client))
 			
-			if message == b'banker' and len(bankers) < LIMIT:
-				_thread.start_new_thread(playerConnected, (connection, client))
+			if message == b'banker':
+				if len(bankers) < LIMIT:
+					_thread.start_new_thread(playerConnected, (connection, client))
 
-				print("Jogador conectou como banqueiro.")
-				connection.sendto("Conectado como banqueiro.".encode(), client)
-				sendMessageToAll("Jogador conectou como banqueiro.", 
-					[conn for (conn, client) in contestants + bankers + spectators])
+					print("Jogador conectou como banqueiro.")
+					connection.sendto("Conectado como banqueiro.".encode(), client)
+					sendMessageToAll("Jogador conectou como banqueiro.", 
+						[conn for (conn, client) in contestants + bankers + spectators])
 
-				bankers.append((connection, client))
-			
+					bankers.append((connection, client))
+				else:
+					_thread.start_new_thread(playerConnected, (connection, client))
+					
+					print("Jogador conectou como expectador.")
+					connection.sendto("Conectado como expectador.".encode(), client)
+					sendMessageToAll("Jogador conectou como expectador.", 
+						[conn for (conn, client) in contestants + bankers + spectators])
+
+					spectators.append((connection, client))
+
 			if contestants and bankers:
 				print("Banqueiro e contestante conectados. Iniciando o jogo.")
 				sendMessageToAll("Vamos comecar o jogo!", 
