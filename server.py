@@ -1,4 +1,4 @@
-import socket, time
+import socket, time, sys
 import _thread
 from random import shuffle
 from banker import Banker 
@@ -246,6 +246,14 @@ if __name__ == "__main__":
 
 	HOST = ""
 	PORT = 5000
+
+	if len(sys.argv) > 1:
+		PORT = int(sys.argv[1])
+
+		if len(sys.argv) > 2:
+			print("Modo de usar:", sys.argv[0], "<porta-do-servidor>")
+			sys.exit()
+
 	origin = (HOST, PORT)
 	tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	tcp.settimeout(1.0)
