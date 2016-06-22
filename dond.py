@@ -172,6 +172,72 @@ def main():
 			currentround = currentround + 1
 			continue
 
+def checkGameStart():
+	while True:
+		if contestants and bankers:
+			print("Banqueiro e contestante conectados. Iniciando o jogo.")
+			sendMessageToAll("Vamos comecar o jogo!", 
+				[conn for (conn, client) in contestants + bankers + spectators])
+
+			main()
+
+			time.sleep(1.0)
+
+			for (conn, client) in contestants + bankers + spectators:
+				conn.sendall(b"end")
+
+			print("Encerrando jogo...")
+
+			bankers.clear()
+			contestants.clear()
+			spectators.clear()
+
+			print("Esperando jogadores...")
+
+		time.sleep(1.0)
+
+def handleConnection(connection, client):
+	success = False
+
+	while not success:
+		try:
+			message = connection.recv(1024)
+		except socket.timeout:
+			continue
+
+		if message == b'contestant':
+			playerConnected(connection, client)
+
+			if len(contestants) < LIMIT:
+				sendMessageToClient("ok", connection, client)
+				connectPlayerAs('contestante')
+				contestants.append((connection, client))
+				success = True
+			else:
+				sendMessageToClient("not", connection, client)
+
+		elif message == b'banker':
+			playerConnected(connection, client)
+
+			if len(bankers) < LIMIT:
+				sendMessageToClient("ok", connection, client)
+				connectPlayerAs('banqueiro')
+				bankers.append((connection, client))
+				success = True
+			else:
+				sendMessageToClient("not", connection, client)
+
+		elif message == b'spectator':
+			sendMessageToClient("ok", connection, client)
+
+			playerConnected(connection, client)
+			connectPlayerAs('expectador')
+			spectators.append((connection, client))
+			success = True
+		
+		else:
+			sendMessageToClient("invalid", connection, client)
+
 if __name__ == "__main__":
 	LIMIT = 1
 	contestants = []
@@ -189,53 +255,16 @@ if __name__ == "__main__":
 	print("Servidor iniciado.")
 	print("Esperando jogadores...")
 
+	_thread.start_new_thread(checkGameStart, ())
+
 	try:
 		while True:
 			try:
 				connection, client = tcp.accept()
-				message = connection.recv(1024)
 			except socket.timeout:
 				continue
 
-			if message == b'contestant':
-				_thread.start_new_thread(playerConnected, (connection, client))
-
-				if len(contestants) < LIMIT:
-					connectPlayerAs('contestante')
-					contestants.append((connection, client))
-				else:
-					connectPlayerAs('expectador')
-					spectators.append((connection, client))
-			
-			if message == b'banker':
-				_thread.start_new_thread(playerConnected, (connection, client))
-
-				if len(bankers) < LIMIT:
-					connectPlayerAs('banqueiro')
-					bankers.append((connection, client))
-				else:
-					connectPlayerAs('expectador')
-					spectators.append((connection, client))
-
-			if contestants and bankers:
-				print("Banqueiro e contestante conectados. Iniciando o jogo.")
-				sendMessageToAll("Vamos comecar o jogo!", 
-					[conn for (conn, client) in contestants + bankers + spectators])
-
-				main()
-
-				time.sleep(1.0)
-
-				for (conn, client) in contestants + bankers + spectators:
-					conn.sendall(b"end")
-				
-				print("Encerrando jogo...")
-
-				bankers.clear()
-				contestants.clear()
-				spectators.clear()
-
-				print("Esperando jogadores...")
+			_thread.start_new_thread(handleConnection, (connection, client))
 	except (SystemExit, KeyboardInterrupt):
 		print("Desligando servidor...")
 	finally:
