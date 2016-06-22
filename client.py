@@ -55,44 +55,48 @@ def makeOffer(tcp):
 def beABanker():
 	while True:
 		try:
-			servermessage = tcp.recv(4096)
+			servermessage = tcp.recv(4096).decode()
 		except socket.timeout:
 			continue
 
-		if servermessage.decode() == "makeoffer":
-			makeOffer(tcp)
-		elif servermessage.decode() == "end":
-			sys.exit(0)
-		else:
-			print(servermessage.decode())
+		for message in servermessage.split("\n"):
+			if message == "makeoffer":
+				makeOffer(tcp)
+			elif message == "end":
+				sys.exit(0)
+			else:
+				print(message)
 
 def beAContestant():
 	while True:
 		try:
-			servermessage = tcp.recv(4096)
+			servermessage = tcp.recv(4096).decode()
 		except socket.timeout:
 			continue
 
-		if servermessage.decode() == "claim":
-			claimCase(tcp)
-		elif servermessage.decode() == "select":
-			selectCase(tcp)
-		elif servermessage.decode() == "agreement":
-			handleOffer(tcp)
-		elif servermessage.decode() == "end":
-			sys.exit(0)
-		else:
-			print(servermessage.decode())
+		for message in servermessage.split("\n"):
+			if message == "claim":
+				claimCase(tcp)
+			elif message == "select":
+				selectCase(tcp)
+			elif message == "agreement":
+				handleOffer(tcp)
+			elif message == "end":
+				sys.exit(0)
+			else:
+				print(message)
 
 def beASpectator():
 	while True:
 		try:
-			servermessage = tcp.recv(4096)
-			
-			if servermessage.decode() == "end":
-				sys.exit(0)
-			else:
-				print(servermessage.decode())
+			servermessage = tcp.recv(4096).decode()
+
+			for message in servermessage.split("\n"):
+				if message == "end":
+					sys.exit(0)
+				else:
+					print(message)
+
 		except socket.timeout:
 			continue
 

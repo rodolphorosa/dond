@@ -54,6 +54,7 @@ def countOpenCases(briefcases):
 			sum = sum + 1
 	return sum
 
+# Envia mensagens apropriadas sobre a conexão do jogador
 def connectPlayerAs(role):
 	print("Jogador conectou como " + role + ".")
 	connection.sendto(("Conectado como " + role + ".").encode(), client)
@@ -70,7 +71,7 @@ def main():
 	bankersocket, bankeraddress 		= bankers[0]
 
 	# Nesta etapa, o competidor escolhe a maleta inicial, que permanecerá fechada até o fim do jogo
-	sendMessageToAll("Contestante esta escolhendo sua maleta...", 
+	sendMessageToAll("Contestante esta escolhendo sua maleta...\n", 
 			[conn for (conn, _) in bankers + spectators])
 
 	while True:
@@ -104,7 +105,7 @@ def main():
 		open_cases 		= 0
 
 		while open_cases < cases_to_open:
-			sendMessageToAll("Contestante esta escolhendo uma maleta para ser aberta...", 
+			sendMessageToAll("Contestante esta escolhendo uma maleta para ser aberta...\n", 
 				[conn for (conn, _) in bankers + spectators])
 			selected = makeRequest("select", contestantsocket, contestantaddress)
 
@@ -140,7 +141,7 @@ def main():
 		answer = makeRequest("agreement", contestantsocket, contestantaddress)
 
 		if answer.lower() in ["s", "sim"]:
-			sendMessageToAll("Contestante aceitou a proposta.", 
+			sendMessageToAll("Contestante aceitou a proposta.\n", 
 				[conn for (conn, _) in bankers + spectators])
 
 			banker.loseAmount(bankeroffer)
@@ -155,7 +156,7 @@ def main():
 				[conn for (conn, _) in contestants + bankers + spectators])
 			return
 		elif answer.lower() in ["n", "nao", "não"]:
-			sendMessageToAll("Contestante rejeitou a proposta.", 
+			sendMessageToAll("Contestante rejeitou a proposta.\n", 
 				[conn for (conn, _) in bankers + spectators])
 
 			if countOpenCases(briefcases) == 24:
@@ -173,6 +174,8 @@ def main():
 			continue
 
 def checkGameStart():
+	# checa se existe um banqueiro e um contestante
+	# conectados em intervalos de um segundo
 	while True:
 		if contestants and bankers:
 			print("Banqueiro e contestante conectados. Iniciando o jogo.")
@@ -199,6 +202,7 @@ def checkGameStart():
 def handleConnection(connection, client):
 	success = False
 
+	# recebe e gerencia o papel do jogador conectado
 	while not success:
 		try:
 			message = connection.recv(1024)
@@ -247,6 +251,7 @@ if __name__ == "__main__":
 	HOST = ""
 	PORT = 5000
 
+	# checa se uma porta foi dada
 	if len(sys.argv) > 1:
 		PORT = int(sys.argv[1])
 
@@ -254,6 +259,7 @@ if __name__ == "__main__":
 			print("Modo de usar:", sys.argv[0], "<porta-do-servidor>")
 			sys.exit()
 
+	# inicia o servidor
 	origin = (HOST, PORT)
 	tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	tcp.settimeout(1.0)
@@ -263,8 +269,10 @@ if __name__ == "__main__":
 	print("Servidor iniciado.")
 	print("Esperando jogadores...")
 
+	# inicia a thread que checa se o jogo pode iniciar
 	_thread.start_new_thread(checkGameStart, ())
 
+	# começa a esperar por conexões de clientes
 	try:
 		while True:
 			try:
@@ -275,5 +283,7 @@ if __name__ == "__main__":
 			_thread.start_new_thread(handleConnection, (connection, client))
 	except (SystemExit, KeyboardInterrupt):
 		print("Desligando servidor...")
+		sendMessageToAll("end", 
+			[conn for (conn, client) in contestants + bankers + spectators])
 	finally:
 		tcp.close()
